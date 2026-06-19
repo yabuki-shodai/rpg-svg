@@ -18,7 +18,19 @@ export const dynamic = "force-dynamic";
 export function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const lines = parseLines(searchParams.getAll("lines"));
-  const svg = createSvg(lines);
+  const charDuration = parsePositiveNumber(
+    searchParams.get("charDuration"),
+    CHARACTER_DURATION,
+    0.02,
+    2,
+  );
+  const lineGap = parsePositiveNumber(
+    searchParams.get("lineGap"),
+    LINE_GAP_DURATION,
+    0,
+    5,
+  );
+  const svg = createSvg(lines, charDuration, lineGap);
 
   return new Response(svg, {
     headers: {
@@ -28,11 +40,15 @@ export function GET(request: Request) {
   });
 }
 
-const createSvg = (lines: string[]) => {
+const createSvg = (
+  lines: string[],
+  charDuration: number,
+  lineGap: number,
+) => {
   const dialogueLines = lines.slice(0, MAX_LINES).map(escapeXml);
-  const frameStates = createFrameStates(dialogueLines);
-  const finalState = createFinalState(dialogueLines);
-  const endTime = calculateEndTime(dialogueLines);
+  const frameStates = createFrameStates(dialogueLines, charDuration, lineGap);
+  const finalState = createFinalState(dialogueLines, charDuration, lineGap);
+  const endTime = calculateEndTime(dialogueLines, charDuration, lineGap);
   const arrowBegin = `${endTime}s`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -83,7 +99,11 @@ const createSvg = (lines: string[]) => {
 </svg>`;
 };
 
-const createFrameStates = (lines: string[]) => {
+const createFrameStates = (
+  lines: string[],
+  charDuration: number,
+  lineGap: number,
+) => {
   let time = 0;
   const frames: string[] = [];
 
@@ -94,8 +114,8 @@ const createFrameStates = (lines: string[]) => {
       const isLastCharacter = charIndex === line.length;
       const shouldPauseOnFullLine = isLastCharacter && lineIndex < lines.length - 1;
       const frameDuration = shouldPauseOnFullLine
-        ? CHARACTER_DURATION + LINE_GAP_DURATION
-        : CHARACTER_DURATION;
+        ? charDuration + lineGap
+        : charDuration;
       time += frameDuration;
       const end = time;
       frames.push(createTextFrame(visibleLine, begin, end));
@@ -105,8 +125,12 @@ const createFrameStates = (lines: string[]) => {
   return frames.join("");
 };
 
-const createFinalState = (lines: string[]) => {
-  const endTime = `${calculateEndTime(lines)}s`;
+const createFinalState = (
+  lines: string[],
+  charDuration: number,
+  lineGap: number,
+) => {
+  const endTime = `${calculateEndTime(lines, charDuration, lineGap)}s`;
   const finalLine = lines.at(-1) ?? "";
 
   return `<text
@@ -122,13 +146,15 @@ const createFinalState = (lines: string[]) => {
     </text>`;
 };
 
-const calculateEndTime = (lines: string[]) => {
+const calculateEndTime = (
+  lines: string[],
+  charDuration: number,
+  lineGap: number,
+) => {
   const totalCharacters = lines.reduce((sum, line) => sum + line.length, 0);
   const gapCount = Math.max(0, lines.length - 1);
   return Number(
-    (totalCharacters * CHARACTER_DURATION + gapCount * LINE_GAP_DURATION).toFixed(
-      2,
-    ),
+    (totalCharacters * charDuration + gapCount * lineGap).toFixed(2),
   );
 };
 
@@ -155,6 +181,24 @@ const createTextFrame = (line: string, begin: number, end: number) => {
 };
 
 const createTspans = (line: string) => `<tspan x="36" dy="0">${line}</tspan>`;
+
+const parsePositiveNumber = (
+  value: string | null,
+  fallback: number,
+  min: number,
+  max: number,
+) => {
+  if (value === null) {
+    return fallback;
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  return Math.min(max, Math.max(min, parsed));
+};
 
 const escapeXml = (value: string) =>
   value
