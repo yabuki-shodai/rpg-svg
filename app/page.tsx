@@ -24,9 +24,6 @@ export default function Page() {
           {`${BASE_URL}/rpg?links=初めまして、藪木と言います。&links=フロントエンドエンジニアをやっています。`}
         </pre>
       </div>
-
-
-
     </main >
   );
 }

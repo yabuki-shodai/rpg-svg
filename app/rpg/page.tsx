@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import SvgDialogueBox from "@/app/components/svg-dialogue-box";
 
@@ -12,6 +12,14 @@ const DEFAULT_LINES = [
 const DEFAULT_SPEED = 80;
 
 export default function RpgPage() {
+  return (
+    <Suspense fallback={<RpgPageFallback />}>
+      <RpgPageContent />
+    </Suspense>
+  );
+}
+
+function RpgPageContent() {
   const searchParams = useSearchParams();
   const serializedParams = searchParams.toString();
   const speed = parseSpeed(searchParams.get("speed"));
@@ -34,6 +42,29 @@ export default function RpgPage() {
         }}
       >
         <RpgStage key={serializedParams} lines={lines} speed={speed} />
+      </section>
+    </main>
+  );
+}
+
+function RpgPageFallback() {
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        display: "grid",
+        placeItems: "center",
+        padding: "24px 16px",
+        background: "#06080d",
+      }}
+    >
+      <section
+        style={{
+          width: "100%",
+          maxWidth: "860px",
+        }}
+      >
+        <SvgDialogueBox text="読み込み中..." width={800} height={160} />
       </section>
     </main>
   );
