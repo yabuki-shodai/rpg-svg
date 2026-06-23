@@ -14,7 +14,7 @@ RPG-SVG is a small web tool for generating RPG-style dialogue boxes as embeddabl
 
 ## Example
 
-![RPG](https://rpg-svg.vercel.app//rpg.svg?lines=Hello&lines=World&charDuration=0.08&lineGap=1.5)
+![RPG](https://rpg-svg.vercel.app/rpg.svg?lines=Welcome to the project.&lines=The story begins here.&charDuration=0.08&lineGap=1.5)
 
 
 This can be used for GitHub profile READMEs, project introductions, or playful retro-style content blocks.
