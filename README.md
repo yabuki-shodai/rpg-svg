@@ -9,7 +9,8 @@ RPG-SVG is a small web tool for generating RPG-style dialogue boxes as embeddabl
 3. Paste it into your README, profile, or any other Markdown-supported document.
 
 [Site](https://rpg-svg.vercel.app/)
-[Demo](https://github.com/yabuki-shodai)
+
+[Developer](https://github.com/yabuki-shodai)
 
 
 ## Example
